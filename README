@@ -1,7 +1,18 @@
 KNOW PROBLEMS:
-you cannot control disk size
+- cannot control disk size
+- password type in plain text
+
 
 TO DO:
-more documentation
-move provisioning (at least part of it) to main file
+
+- add option to pass all variables from file
+- more documentation
+- move provisioning (at least part of it) to main file
+- remove  default settings for some variables
+** preseed file
+** mirror addreess
+** root password
+and add nice option to handle it.
+- handle password nicer (from commandline).
+- better (more dynamic created pressed file).
 
