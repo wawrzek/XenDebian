@@ -206,16 +206,18 @@ def main():
 def usage():
     print """This is tool to create a Debian based VM.
     It is controle by following options
-    -m --master string: name of the pool master/server you want to connect to (default: xen);
-    -u --username string: username to connect to the pool master/server (default root);
-    -p --password string: password used to login into  the pool master/server (default XenRules!)"
-    -s --server string: name of the server (host) you want to install your VM (default: xen);
-    -v --vm string: name of the new vm (default: new);
-    -d --distro [5,6]: release number of Debian release (default: 6);
-    -a --arch [32,64]: VM architecture (default: 32);
-    -C --cpu int: number of virtual CPU assign to vm (default 1);
-    -M --memory float: number of memory in GB (default 1.0);
-    -D --disk float: size of partition in GB (default 8.0); NOT WORKING
+    -m --master= string: name of the pool master/server you want to connect to (default: xen);
+    -u --username= string: username to connect to the pool master/server (default root);
+    -p --password= string: password used to login into  the pool master/server (default XenRules!)"
+    -s --server= string: name of the server (host) you want to install your VM (default: xen);
+    -v --vm= string: name of the new vm (default: new);
+    -d --distro= [5,6]: release number of Debian release (default: 6);
+    -a --arch= [32,64]: VM architecture (default: 32);
+    -c --config= [address] : address of preseed file to use (please remember not to add http://)"
+    -r --repo= [address]: address of local mirror (please remember not to add http://)"
+    -C --cpu= int: number of virtual CPU assign to vm (default 1);
+    -M --memory= float: number of memory in GB (default 1.0);
+    -D --disk= float: size of partition in GB (default 8.0); NOT WORKING
     """
 
 if __name__ == "__main__":
@@ -230,8 +232,8 @@ if __name__ == "__main__":
     disk = 8.0
     mem = 1.0
     cpu = 1
-    repo = 'http://debian.org/debian' #VARIABLE
-    configfile = 'http://debian.your.org/preseed.cfg' #VARIABLE
+    repo = 'http://debian.org/debian'
+    configfile = 'http://debian.your.org/preseed.cfg'
     
     try:
         opts, args = getopt.getopt(sys.argv[1:], "a:c:d:hm:p:r:s:u:v:C:D:M:", 
