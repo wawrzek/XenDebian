@@ -43,10 +43,11 @@ def get_pif(PIF, HOST, NET):
 
 def set_vm(VM):
     """Set VM:
-    - find requested template
-    - set VM name
-    - set kernel commands (nonitertive)
+    - find requested template;
+    - set VM name;
+    - set kernel commands (nonitertive).
     """
+    
     for vm, record in VM.get_all_records(ses)[v].items():
         if record["name_label"] == distro:
             template = vm
@@ -64,8 +65,8 @@ def set_vm(VM):
     
 def set_cpu(VM):
     """Set CPU:
-    - set max number
-    - set start number
+    - set max number;
+    - set start number.
     """
     VM.set_VCPUs_max(ses, vm, str(cpu))
     VM.set_VCPUs_at_startup(ses, vm, str(cpu))
@@ -78,8 +79,8 @@ def set_mem(VM):
 
 def set_network(VIF):
     """Set VIF based on
-    - vm
-    - network_ref
+    - vm;
+    - network_ref.
     """
     print "Creating VIF"
     vif = { 'device': '0',
@@ -107,9 +108,9 @@ def set_disks(VM, PBD, SR, VBD, VDI):
     #DISK
     for sr in get_local_disks(PBD, SR):
         print ("Found a local disk called %s" % sr['name_label'])
-        #print ("Physical size %s" % (float(sr['physical_size'])/GB))
         print (" Physical size %s" % (sr['physical_size']))
-        print (" Utilization %5.2f %%" % ((float(sr['physical_utilisation'])/(float(sr['physical_size'])))*100) )
+        percentage = float(sr['physical_utilisation'])/(float(sr['physical_size']))*100
+        print (" Utilization %5.2f %%" % (percentage))
         local_sr = sr
 
     print "Choosing SR: %s (uuid %s)" % (local_sr['name_label'], local_sr['uuid'])
@@ -149,8 +150,7 @@ def set_disks(VM, PBD, SR, VBD, VDI):
 
 def install_debian(VM):
     print 'Pointing the installation at a Debian repository \n'
-    repo = 'http://debian.uk.xensource.com/debian' #VARIABLE
-    preseed = 'http://bizantium.uk.xensource.com/preseed.cfg' #VARIABLE
+
     VM.remove_from_other_config(ses, vm, 'install-methods')
     VM.add_to_other_config(ses, vm, 'install-methods', 'http')
     VM.add_to_other_config(ses, vm, 'install-repository', repo)
@@ -161,25 +161,26 @@ def install_debian(VM):
                    " auto-install/enable=true "
                    " hostname=%s "
                    " domain=%s "
-                   " url=%s" % (vmname, '', preseed))
+                   " url=%s" % (vmname, '', configfile))
 
 ###MAIN START HERE###
 def main():
     
-    #Define shourtcuts for all XAPI class in use
+    # Define shourtcuts for all XAPI class in use
     VM = conn.VM
     HOST = conn.host
     VDI = conn.VDI
     PIF = conn.PIF
     VIF = conn.VIF
     NET = conn.network
-    POOL = conn.pool
     PBD = conn.PBD
     SR = conn.SR
     VBD = conn.VBD
     VDI = conn.VDI
     
-    #vm and cd_ref are read only use in various functions
+    # These variabels are read only use in various functions 
+    # so I can define them global here and not bother to pass
+    # in function
     global vm
     global cd_ref #Ref: CD with XS Tools
     global host_ref #Ref: Host to install
@@ -195,15 +196,12 @@ def main():
     set_network(VIF)
     set_disks(VM, PBD, SR, VBD, VDI)
 
-    pool = POOL.get_all(ses)[v][0]
-    print VM.get_all()
     install_debian(VM)
 
     print ("Starting VM")
-    VM.start(vm, False, True)
+    VM.start(ses, vm, False, True)
     print "  VM is booting"
    
-
 
 def usage():
     print """This is tool to create a Debian based VM.
@@ -213,7 +211,7 @@ def usage():
     -p --password string: password used to login into  the pool master/server (default XenRules!)"
     -s --server string: name of the server (host) you want to install your VM (default: xen);
     -v --vm string: name of the new vm (default: new);
-    -d --distro [5,6]: number of Debian release (default: 6);
+    -d --distro [5,6]: release number of Debian release (default: 6);
     -a --arch [32,64]: VM architecture (default: 32);
     -C --cpu int: number of virtual CPU assign to vm (default 1);
     -M --memory float: number of memory in GB (default 1.0);
@@ -232,9 +230,12 @@ if __name__ == "__main__":
     disk = 8.0
     mem = 1.0
     cpu = 1
+    repo = 'http://debian.org/debian' #VARIABLE
+    configfile = 'http://debian.your.org/preseed.cfg' #VARIABLE
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "a:d:hm:p:s:u:v:C:D:M:", ["arch=", "distro=", "help", "master=", "password=","server=", "username=", "vm=", "cpu=", "disk=", "mem="])
+        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:hm:p:r:s:u:v:C:D:M:", 
+        ["arch=", "config=", "distro=", "help", "master=", "password=", "repo=", "server=", "username=", "vm=", "cpu=", "disk=", "mem="])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err) # will print something like "option -a not recognized"
@@ -259,6 +260,10 @@ if __name__ == "__main__":
             dist = a
         elif o in ("-a", "--arch"):
             arch = a
+        elif o in ("-c", "--configfile"):
+            configfile = "http://"+a
+        elif o in ("-r" "--repo"):
+            repo = "http://"+a
         elif o in ("-C", "--cpu"):
             cpu = int(a)
         elif o in ("-D", "--disk"):
@@ -269,9 +274,12 @@ if __name__ == "__main__":
             assert False, "unhandled option"   
 
     if dist == '5':
-        distro="Debian Lenny 5.0 ("+arch+"-bit)"
+        distro ="Debian Lenny 5.0 ("+arch+"-bit)"
     elif dist == '6':
-        distro="Debian Squeeze 6.0 ("+arch+"-bit) (experimental)"
+        if arch == '64':
+            distro ="Debian Squeeze 6.0 ("+arch+"-bit) (experimental)"
+        else :
+            distro ="Debian Squeeze 6.0 ("+arch+"-bit)"
     else:
         print ("Unknown disto release")
         sys.exit(4)
@@ -281,12 +289,13 @@ if __name__ == "__main__":
     ses = conn.session.login_with_password(username, password)[v]
     print ("\n Connection unique ref: %s\n" %ses)
     
+    # With session Ref UUID start the main part
     try:
        main()
     except Exception, e:
         print str(e)
         raise
     
-    #close the session
+    # Close the session
     conn.logout(ses)
 
