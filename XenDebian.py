@@ -208,7 +208,7 @@ def usage():
     It is controle by following options
     -m --master= string: name of the pool master/server you want to connect to (default: xen);
     -u --username= string: username to connect to the pool master/server (default root);
-    -p --password= string: password used to login into  the pool master/server (default XenRules!)"
+    -p --password= string: password used to login into  the pool master/server (no default)"
     -s --server= string: name of the server (host) you want to install your VM (default: xen);
     -v --vm= string: name of the new vm (default: new);
     -d --distro= [5,6]: release number of Debian release (default: 6);
@@ -217,13 +217,13 @@ def usage():
     -r --repo= [address]: address of local mirror (please remember not to add http://)"
     -C --cpu= int: number of virtual CPU assign to vm (default 1);
     -M --memory= float: number of memory in GB (default 1.0);
-    -D --disk= float: size of partition in GB (default 8.0); NOT WORKING
-    """
+    DOESN'T WORK YET:
+    -D --disk= float: size of partition in GB (default 8.0);
 
+    """
 if __name__ == "__main__":
     #DEFAULT VARIABLES
     username = 'root'
-    password = 'xenRulez!'
     url = 'http://xen/'
     hostname = 'xen'
     vmname = 'new'
@@ -235,6 +235,7 @@ if __name__ == "__main__":
     repo = 'http://debian.org/debian'
     configfile = 'http://debian.your.org/preseed.cfg'
     
+    #Get input from command line
     try:
         opts, args = getopt.getopt(sys.argv[1:], "a:c:d:hm:p:r:s:u:v:C:D:M:", 
         ["arch=", "config=", "distro=", "help", "master=", "password=", "repo=", "server=", "username=", "vm=", "cpu=", "disk=", "mem="])
@@ -275,22 +276,36 @@ if __name__ == "__main__":
         else:
             assert False, "unhandled option"   
 
-    if dist == '5':
-        distro ="Debian Lenny 5.0 ("+arch+"-bit)"
+    #Check if distro is supported
+    if dist == '5' and arch == '32':
+        distro = "Debian Lenny 5.0 ("+arch+"-bit)"
     elif dist == '6':
         if arch == '64':
             distro ="Debian Squeeze 6.0 ("+arch+"-bit) (experimental)"
-        else :
-            distro ="Debian Squeeze 6.0 ("+arch+"-bit)"
+        else:
+            distro = "Debian Squeeze 6.0 ("+arch+"-bit)"
     else:
         print ("Unknown disto release")
         sys.exit(4)
-        
-    # First acquire a valid session by logging in:
-    conn = xmlrpclib.Server(url)
-    ses = conn.session.login_with_password(username, password)[v]
-    print ("\n Connection unique ref: %s\n" %ses)
     
+    #Get password if not passed from commandline
+    try: 
+        password
+    except NameError:
+        import getpass
+        password = getpass.getpass()
+        
+    # First acquire a session by logging in:
+    conn = xmlrpclib.Server(url)
+    connection = conn.session.login_with_password(username, password)
+    #Test if session is valid
+    if connection['Status'] == 'Success':
+        ses = connection[v]
+        print ("\n Connection unique ref: %s\n" %ses)
+    else :
+        for i in connection['ErrorDescription']:
+            print i
+        sys.exit(5)
     # With session Ref UUID start the main part
     try:
        main()
