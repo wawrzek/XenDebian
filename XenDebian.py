@@ -75,6 +75,7 @@ def set_cpu(VM):
 def set_mem(VM):
     """Set VM memory"""
     mem_str = str(int(mem*GB))
+    VM.set_memory_static_min(ses, vm, mem_str)
     VM.set_memory_static_max(ses, vm, mem_str)
 
 def set_network(VIF):
@@ -161,7 +162,7 @@ def install_debian(VM):
                    " auto-install/enable=true "
                    " hostname=%s "
                    " domain=%s "
-                   " url=%s" % (vmname, '', configfile))
+                   "%s" %(vmname, '', preseed))
 
 ###MAIN START HERE###
 def main():
@@ -180,11 +181,11 @@ def main():
     
     # These variabels are read only use in various functions 
     # so I can define them global here and not bother to pass
-    # in function
+    # to functions
     global vm
-    global cd_ref #Ref: CD with XS Tools
-    global host_ref #Ref: Host to install
-    global network_ref #Ref: Network
+    global cd_ref # Ref: CD with XS Tools
+    global host_ref # Ref: Host to install
+    global network_ref # Ref: Network
     
     cd_ref = VDI.get_by_name_label(ses, 'xs-tools.iso')[v][0]    
     host_ref = HOST.get_by_name_label(ses, hostname)[v][0]
@@ -213,8 +214,8 @@ def usage():
     -v --vm= string: name of the new vm (default: new);
     -d --distro= [5,6]: release number of Debian release (default: 6);
     -a --arch= [32,64]: VM architecture (default: 32);
-    -c --config= [address] : address of preseed file to use (please remember not to add http://)"
-    -r --repo= [address]: address of local mirror (please remember not to add http://)"
+    -c --config= [address] : address of preseed file to use - please remember not to add http:// (no default)"
+    -r --repo= [address]: address of local mirror - please remember not to add http:// (default ftp.debian.org/debian"
     -C --cpu= int: number of virtual CPU assign to vm (default 1);
     -M --memory= float: number of memory in GB (default 1.0);
     DOESN'T WORK YET:
@@ -222,7 +223,7 @@ def usage():
 
     """
 if __name__ == "__main__":
-    #DEFAULT VARIABLES
+    # Set DEFAULT VARIABLES
     username = 'root'
     url = 'http://xen/'
     hostname = 'xen'
@@ -232,19 +233,19 @@ if __name__ == "__main__":
     disk = 8.0
     mem = 1.0
     cpu = 1
-    repo = 'http://debian.org/debian'
-    configfile = 'http://debian.your.org/preseed.cfg'
+    repo = 'http://ftp.debian.org/debian'
     
-    #Get input from command line
+    # Get input from command line
     try:
         opts, args = getopt.getopt(sys.argv[1:], "a:c:d:hm:p:r:s:u:v:C:D:M:", 
         ["arch=", "config=", "distro=", "help", "master=", "password=", "repo=", "server=", "username=", "vm=", "cpu=", "disk=", "mem="])
     except getopt.GetoptError, err:
-        # print help information and exit:
-        print str(err) # will print something like "option -a not recognized"
+        # Print help information; error message and exit"
         usage()
+        print str(err)
         sys.exit(2)
         
+    # Set up variables
     for o, a in opts:
         if o in ("-h", "--help"):
             usage()
@@ -276,7 +277,7 @@ if __name__ == "__main__":
         else:
             assert False, "unhandled option"   
 
-    #Check if distro is supported
+    # Check if distro is supported
     if dist == '5' and arch == '32':
         distro = "Debian Lenny 5.0 ("+arch+"-bit)"
     elif dist == '6':
@@ -287,8 +288,15 @@ if __name__ == "__main__":
     else:
         print ("Unknown disto release")
         sys.exit(4)
-    
-    #Get password if not passed from commandline
+        
+    # Check if address to a preseed file has been provided
+    try:
+        preseed = (" url=%s" %  configfile)
+    except NameError:
+        preseed = ""
+        print ("Preseed file not define. When script will finish please go to XenCenter to continue installation.")
+        
+    # Get password if not passed from commandline
     try: 
         password
     except NameError:
@@ -298,6 +306,7 @@ if __name__ == "__main__":
     # First acquire a session by logging in:
     conn = xmlrpclib.Server(url)
     connection = conn.session.login_with_password(username, password)
+    
     #Test if session is valid
     if connection['Status'] == 'Success':
         ses = connection[v]
@@ -306,9 +315,10 @@ if __name__ == "__main__":
         for i in connection['ErrorDescription']:
             print i
         sys.exit(5)
+        
     # With session Ref UUID start the main part
     try:
-       main()
+       main() # Not variables, as they are not going to be change in program
     except Exception, e:
         print str(e)
         raise
