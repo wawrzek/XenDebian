@@ -18,10 +18,10 @@ MB = 2**20
 def get_local_disks(HOST, PBD, SR):
     
     pbds = PBD.get_all_records(ses)
-    pbds_host = HOST.get_PDBs(ses,host_ref)[v]
+    pbds_host = HOST.get_PBDs(ses,host_ref)[v]
     
     # Choose  PBDs attached to the host where VM should be install
-    sr_ref = [ PBD.get_record(ses,i)[v]['SR'] for i in pdbs_host ]
+    sr_ref = [ PBD.get_record(ses,i)[v]['SR'] for i in pbds_host ]
     sr = [ SR.get_record(ses,d)[v] for d in sr_ref ]
     return [ s for s in sr if s['type'] in ['ext', 'lvm' ] and not s['shared'] ]
 
@@ -200,7 +200,7 @@ def main():
     set_cpu(VM)
     set_mem(VM)    
     set_network(VIF)
-    set_disks(VM, PBD, SR, VBD, VDI)
+    set_disks(HOST, VM, PBD, SR, VBD, VDI)
 
     install_debian(VM)
 
