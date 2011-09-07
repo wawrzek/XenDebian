@@ -15,8 +15,13 @@ MB = 2**20
 
 
 
-def get_local_disks(PBD, SR):
-    sr_ref = [ PBD.get_record(ses,i)[v]['SR'] for i in PBD.get_all(ses)[v] ]
+def get_local_disks(HOST, PBD, SR):
+    
+    pbds = PBD.get_all_records(ses)
+    pbds_host = HOST.get_PDBs(ses,host_ref)[v]
+    
+    # Choose  PBDs attached to the host where VM should be install
+    sr_ref = [ PBD.get_record(ses,i)[v]['SR'] for i in pdbs_host ]
     sr = [ SR.get_record(ses,d)[v] for d in sr_ref ]
     return [ s for s in sr if s['type'] in ['ext', 'lvm' ] and not s['shared'] ]
 
@@ -26,8 +31,8 @@ def get_pif(PIF, HOST, NET):
     # just because the example code does.
     #
 
+    # Choose  PIFs attached to the host where VM should be install
     pifs = PIF.get_all_records(ses)
-
     pifs_host = HOST.get_PIFs(ses,host_ref)[v]
     
     pifs_attached = [pifs[v][id] for id in pifs_host if pifs[v][id]['currently_attached'] ]
@@ -58,7 +63,7 @@ def set_vm(VM):
     print ("New VM has name: %s"% vmname)
     VM.set_name_description(ses, new_vm, 'TEST build')
     #print ("vm: %s" % VM.get_record(ses, new_vm))
-    print "Adding noninteractive to the kernel commandline\n"
+    print ("Adding noninteractive to the kernel commandline\n")
     VM.set_PV_args(ses, new_vm, "noninteractive")
     return new_vm
     
@@ -102,12 +107,12 @@ def add_disk(spec, size, sr_uuid):
                                      False))
     return spec.disks[-1].device
 
-def set_disks(VM, PBD, SR, VBD, VDI):
+def set_disks(HOST, VM, PBD, SR, VBD, VDI):
 
     print "Choosing an SR to instantiate the VM's disks"
 
     #DISK
-    for sr in get_local_disks(PBD, SR):
+    for sr in get_local_disks(HOST, PBD, SR):
         print ("Found a local disk called %s" % sr['name_label'])
         print (" Physical size %s" % (sr['physical_size']))
         percentage = float(sr['physical_utilisation'])/(float(sr['physical_size']))*100
