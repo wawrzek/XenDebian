@@ -194,7 +194,7 @@ def main():
     VBD = conn.VBD
     VDI = conn.VDI
     
-    # These variabels are 'read only' used in various functions 
+    # These variables are 'read only' used in various functions 
     # so I can define them global here and not bother to pass
     # to functions as argument later
     global cd_ref # Ref: CD with XS Tools
