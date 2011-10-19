@@ -114,12 +114,12 @@ def get_set_disk(disk, config, name):
 	temp = config.getAttribute(name)
 	disk.setAttribute(name, temp)
 
-def parse_disk(element):
+def parse_disk(element, doc):
 	vm_disk = doc.createElement("disk")
-	get_set_disk(disk, element, "device")
-	get_set_disk(disk, element, "size")
-	get_set_disk(disk, element, "sr")
-	get_set_disk(disk, element, "bootable")
+	get_set_disk(vm_disk, element, "device")
+	get_set_disk(vm_disk, element, "size")
+	get_set_disk(vm_disk, element, "sr")
+	get_set_disk(vm_disk, element, "bootable")
 	return vm_disk
 
 
@@ -142,27 +142,28 @@ def set_disks(HOST, VM, PBD, SR, VBD, VDI):
     print ("  Chosen SR: %s (uuid %s)" % (local_sr['name_label'], local_sr['uuid']))
 
     print ("Rewriting the disk provisioning XML\n")
-	disks_config = VM.get_other_config(token, vm)[v]['disks']
-	xml_whole = xml.dom.mindom.parseString(disk_config)
-	xml_provision = disk_whole.getElementByTagName("provision")
-	if len(disks_xml) <> 1:
-		raise "Expected to find exactly one <provision> element"
-	xml_disks = xml_provision[0].getElementsByTagName("disks")
-	xml_disks_newvm=[]
-	for disk in xml_disks:
-		disk.setAttribute(local_sr_uuid)
-		xml_disks_newvm.append(parse_disk(element))
-	
+    disks_config = VM.get_other_config(token, vm)[v]['disks']
+    xml_old = xml.dom.minidom.parseString(disks_config)
+    xml_provisions = xml_old.getElementsByTagName("provision")
+    if len(xml_provisions) <> 1:
+        raise "Expected to find exactly one <provision> element"
+    xml_disks = xml_provisions[0].getElementsByTagName("disk")
+
     print ("Asking server to provision storage from the template specification")
-	xml_doc = xml.dom.minidom.Document()
-	xml_provision_newvm = xml_doc.createElement("provision")
-	for disk in xml_disks_newvm:
-		xml_provision_newvm.appendChild(xml_disks_newvm)
+    xml_new = xml.dom.minidom.Document()
+    xml_provision_newvm = xml_new.createElement("provision")
+    xml_disks_newvm=[]
+    for disk in xml_disks:
+        disk.setAttribute("sr",local_sr_uuid)
+        xml_provision_newvm.appendChild(parse_disk(disk, xml_new))
+    xml_new.appendChild(xml_provision_newvm)
+    new_disk_config = xml_new.toprettyxml()
+    
     try:
         VM.remove_from_other_config(token, vm, "disks")
     except:
         pass
-    VM.add_to_other_config(token, vm, "disks", xml_doc)
+    VM.add_to_other_config(token, vm, "disks", new_disk_config)
     VM.provision(token, vm)
 
     print ("Setting up names for assign disks")
@@ -179,7 +180,7 @@ def set_disks(HOST, VM, PBD, SR, VBD, VDI):
                                'VDI': cd_ref,
                                'type': 'CD',
                                'mode': 'RO',
-                               'userdevice': str(len(spec.disks)),
+                               'userdevice': str(len(xml_disks)),
                                'bootable': False,
                                'empty': False,
                                'other_config': {},
