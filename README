@@ -1,12 +1,14 @@
 KNOWN PROBLEMS:
 
 - XenTools installation depends on disk numbering,
-- list of OS to install depends hardcoded. 
+- list of OS to install depends hardcoded,
+- installation target has to be local disk.
 
 TO DO:
 
 - add option to pass all variables from a file,
 - more documentation,
-- move provisioning (at least part of it) to the main file,
+- give choice of network interface(s),
 - better (more dynamic) created pressed file,
+- add option to set disk destination (local vs share storage),
 - add option to control disk size.
