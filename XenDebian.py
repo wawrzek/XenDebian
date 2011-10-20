@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
+# vim: set et :
 # Copyright (c) 2011 Citrix, Inc.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -15,41 +16,18 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 # Author Wawrzek Niewodniczanski < wawrzek.niewodniczanski at citrix.com >
-# - based on the install.py and provision.py examples from old SDK. 
+# - based on the install.py and provision.py examples from an old SDK.
 
 import sys, time, getopt
-import xmlrpclib 
+import xmlrpclib
 import xml.dom.minidom
+	
+v = 'Value' # shortcut for Value to get only value from a command result
 
-#
-v = 'Value'
-
-#Disk/Memory size definition
+# Disk/Memory size definition
 GB = 2**30
 MB = 2**20
 
-
-def get_pif(PIF, HOST, NET):
-    """Find out PIF (Physical network InterFace) attached to the selected server"""
-    
-    # Choose the PIF with the alphabetically lowest device,
-    # just because the example code does.
-    #
-
-    # Choose  PIFs attached to the host where VM should be install
-    pifs = PIF.get_all_records(token)
-    pifs_host = HOST.get_PIFs(token,host_ref)[v]
-    
-    pifs_attached = [pifs[v][id] for id in pifs_host if pifs[v][id]['currently_attached'] ]
-    lowest = min([p['device'] for p in pifs_attached])
-    pif = [p for p in pifs_attached if p['device'] == lowest][0]
-    
-    network_ref = pif['network']
-    print ("  PIF is connected to: %s\n" %NET.get_name_label(token,network_ref)[v])
-
-    return network_ref
-
-    #print "Choosing PIF with device: ", pif
 
 def set_vm(VM):
     """Set VM:
@@ -57,7 +35,8 @@ def set_vm(VM):
     - set VM name and description;
     - set kernel commands (non-interactive).
     """
-    
+
+    #CHANGE here - better list of distros
     for vm, record in VM.get_all_records(token)[v].items():
         if record["name_label"] == distro:
             template = vm
@@ -74,8 +53,8 @@ def set_vm(VM):
     VM.set_PV_args(token, new_vm, "noninteractive")
 
     return new_vm
-    
-    
+
+
 def set_cpu(VM):
     """Set CPU:
     - set max number;
@@ -84,8 +63,8 @@ def set_cpu(VM):
     
     VM.set_VCPUs_max(token, vm, str(cpu))
     VM.set_VCPUs_at_startup(token, vm, str(cpu))
-   
-   
+
+
 def set_mem(VM):
     """Set VM (static) memory"""
     
@@ -94,13 +73,35 @@ def set_mem(VM):
     VM.set_memory_static_min(token, vm, mem_str)
     VM.set_memory_static_max(token, vm, mem_str)
 
+
+def get_pif(PIF, HOST, NET):
+    """Find out PIF (Physical network InterFace) attached to the selected server"""
+    
+    # Choose the PIF with the alphabetically lowest device,
+    # just because the example code does.
+
+    # Create the list of PIFs attached to the host where VM should be install
+    pifs = PIF.get_all_records(token)
+    pifs_host = HOST.get_PIFs(token,host_ref)[v]
+    # Find out the pif with lowest number
+    # CHANGE
+    pifs_attached = [pifs[v][id] for id in pifs_host if pifs[v][id]['currently_attached'] ]
+    lowest = min([p['device'] for p in pifs_attached])
+    pif = [p for p in pifs_attached if p['device'] == lowest][0]
+    
+    network_ref = pif['network']
+    print ("  PIF is connected to: %s\n" %NET.get_name_label(token,network_ref)[v])
+
+    return network_ref
+
+
 def set_network(VIF):
     """Set VIF (Virtual network InterFace) based on
     - vm;
     - network_ref. (PIF)
     """
     
-    print "Creating VIF\n"
+    print ("Creating VIF\n")
     vif = { 'device': '0',
             'network': network_ref,
             'VM': vm,
@@ -124,27 +125,30 @@ def get_local_disks(HOST, PBD, SR):
     
     return [ s for s in sr if s['type'] in ['ext', 'lvm' ] and not s['shared'] ]
 
+
 def get_set_disk(disk, config, name):
-	temp = config.getAttribute(name)
-	disk.setAttribute(name, temp)
+    """Copy a setting from xml doc to another one"""
+
+    temp = config.getAttribute(name)
+    disk.setAttribute(name, temp)
+
 
 def parse_disk(element, doc):
-	vm_disk = doc.createElement("disk")
-	get_set_disk(vm_disk, element, "device")
-	get_set_disk(vm_disk, element, "size")
-	get_set_disk(vm_disk, element, "sr")
-	get_set_disk(vm_disk, element, "bootable")
-	return vm_disk
+    """ Copy disk settings from template to new VM
+    (using get_set_disk function)"""
+    
+    vm_disk = doc.createElement("disk")
+    get_set_disk(vm_disk, element, "device")
+    get_set_disk(vm_disk, element, "size")
+    get_set_disk(vm_disk, element, "sr")
+    get_set_disk(vm_disk, element, "bootable")
+    return vm_disk
 
 
 def set_disks(HOST, VM, PBD, SR, VBD, VDI):
-    """ Prepare disks for VM:
-    - HDD for main OS,
-    - CD with XenTools
-    """
+    """ Prepare HDD for main OS """
     
     print ("Choosing an SR to initiate the VM's disks")
-
     # Find local disk - in future give a choice to find maybe share storage as well
     for sr in get_local_disks(HOST, PBD, SR):
         print ("  Found a local disk called '%s'" % sr['name_label'])
@@ -152,27 +156,30 @@ def set_disks(HOST, VM, PBD, SR, VBD, VDI):
         percentage = float(sr['physical_utilisation'])/(float(sr['physical_size']))*100
         print ("   Utilization: %5.2f %%" % (percentage))
         local_sr = sr
-	local_sr_uuid = local_sr['uuid']
+    local_sr_uuid = local_sr['uuid']
     print ("  Chosen SR: %s (uuid %s)" % (local_sr['name_label'], local_sr['uuid']))
 
     print ("Rewriting the disk provisioning XML\n")
+    # Get disks settings store in template->other configs (XML)
     disks_config = VM.get_other_config(token, vm)[v]['disks']
-    xml_old = xml.dom.minidom.parseString(disks_config)
-    xml_provisions = xml_old.getElementsByTagName("provision")
-    if len(xml_provisions) <> 1:
+    xml_template = xml.dom.minidom.parseString(disks_config)
+    xml_provision_template = xml_template.getElementsByTagName("provision")
+    if len(xml_provision_template) <> 1:
         raise "Expected to find exactly one <provision> element"
-    xml_disks = xml_provisions[0].getElementsByTagName("disk")
-
-    print ("Asking server to provision storage from the template specification")
-    xml_new = xml.dom.minidom.Document()
-    xml_provision_newvm = xml_new.createElement("provision")
+    xml_disks_template = xml_provision_template[0].getElementsByTagName("disk")
+    # Prepare disks settings for new VM (XML)
+    xml_newvm = xml.dom.minidom.Document()
+    xml_provision_newvm = xml_newvm.createElement("provision")
     xml_disks_newvm=[]
-    for disk in xml_disks:
-        disk.setAttribute("sr",local_sr_uuid)
-        xml_provision_newvm.appendChild(parse_disk(disk, xml_new))
-    xml_new.appendChild(xml_provision_newvm)
-    new_disk_config = xml_new.toprettyxml()
-    
+    for disk in xml_disks_template:
+        disk.setAttribute("sr",local_sr_uuid) # set up new sr_uuid
+        xml_provision_newvm.appendChild(parse_disk(disk, xml_newvm))
+    xml_newvm.appendChild(xml_provision_newvm)
+    new_disk_config = xml_newvm.toprettyxml()
+
+    global disks_number
+    disks_number = len(xml_disks_newvm)
+    print ("Asking server to provision storage from the template specification")
     try:
         VM.remove_from_other_config(token, vm, "disks")
     except:
@@ -189,12 +196,15 @@ def set_disks(HOST, VM, PBD, SR, VBD, VDI):
         vdi_ref = VBD.get_VDI(token, vbd_ref)[v]
         VDI.set_name_label(token, vdi_ref, names[position])
 
+def set_xentools_cd(VBD):
+    """ Prepare CD with XenTools for VM """
+
     print ("Creating CD-rom with XenTools\n")
     VBD.create(token, {'VM': vm,
                                'VDI': cd_ref,
                                'type': 'CD',
                                'mode': 'RO',
-                               'userdevice': str(len(xml_disks)),
+                               'userdevice': str(disks_number),
                                'bootable': False,
                                'empty': False,
                                'other_config': {},
@@ -207,7 +217,6 @@ def install_debian(VM):
     """Install selected version of Debian"""
     
     print ('Pointing the installation at a Debian repository \n')
-
     VM.remove_from_other_config(token, vm, 'install-methods')
     VM.add_to_other_config(token, vm, 'install-methods', 'http')
     VM.add_to_other_config(token, vm, 'install-repository', repo)
@@ -222,7 +231,7 @@ def install_debian(VM):
 
 
 
-###MAIN START HERE###
+### MAIN START HERE ###
 def main():
     
     # Define shourtcuts for all XAPI class in use
@@ -237,11 +246,11 @@ def main():
     VBD = conn.VBD
     VDI = conn.VDI
     
-    # These variables are 'read only' used in various functions 
+    # These variables are 'read only' used in various functions
     # so I can define them global here and not bother to pass
     # to functions as argument later
     global cd_ref # Ref: CD with XS Tools
-    cd_ref = VDI.get_by_name_label(token, 'xs-tools.iso')[v][0]    
+    cd_ref = VDI.get_by_name_label(token, 'xs-tools.iso')[v][0]
 
     global host_ref # Ref: Host to install
     host_ref = HOST.get_by_name_label(token, hostname)[v][0]
@@ -249,20 +258,21 @@ def main():
     global network_ref # Ref: Network
     network_ref = get_pif(PIF, HOST, NET)
 
-    global vm #Ref: to the new VM
+    global vm # Ref: to the new VM
     vm = set_vm(VM) # create VM
 
     set_cpu(VM) # set CPU
-    set_mem(VM) # set memory (only static value)  
+    set_mem(VM) # set memory (only static value)
     set_network(VIF) # set network
-    set_disks(HOST, VM, PBD, SR, VBD, VDI) #prepare disk and XenTools CDROM
+    set_disks(HOST, VM, PBD, SR, VBD, VDI) # prepare HDD disks
+    set_xentools_cd(VBD) # prepare XenTools CDROM
 
     install_debian(VM)
 
     print ("Starting VM")
     VM.start(token, vm, False, True)
     print ("  VM is booting")
-   
+
 
 def usage():
     print """This is the tool to create a Debian based VM.
@@ -284,7 +294,7 @@ def usage():
 
     """
 if __name__ == "__main__":
-    	
+    
     # Set DEFAULT VARIABLES
     username = 'root'
     vmname = 'new'
@@ -298,7 +308,7 @@ if __name__ == "__main__":
     
     # Get input from the command line
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:hi:m:p:r:s:u:v:C:D:M:", 
+        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:hi:m:p:r:s:u:v:C:D:M:",
         ["arch=", "config=", "distro=", "help",  "info=", "master=", "password=", "repo=", "server=", "username=", "vm=", "cpu=", "disk=", "mem="])
     except getopt.GetoptError, err:
         # Print help information; error message and exit"
@@ -338,9 +348,10 @@ if __name__ == "__main__":
         elif o in ("-M", "--memory"):
             mem = float(a)
         else:
-            assert False, "unhandled option"   
+            assert False, "unhandled option"
 
-    # Check if distro is supported #This can be done better, based on list from an actual box you try to connect to.
+    # Check if distro is supported 
+    # This can be done better, based on list from an actual box you try to connect to.
     if dist == '5' and arch == '32':
         distro = "Debian Lenny 5.0 ("+arch+"-bit)"
     elif dist == '6':
@@ -360,7 +371,7 @@ if __name__ == "__main__":
         print ("Preseed file not define. When script will finish please go to XenCenter to continue installation.")
         
     # Get password if not passed from the commandline
-    try: 
+    try:
         password
     except NameError:
         import getpass
