@@ -170,7 +170,6 @@ def set_disks(HOST, VM, PBD, SR, VBD, VDI):
     # Prepare disks settings for new VM (XML)
     xml_newvm = xml.dom.minidom.Document()
     xml_provision_newvm = xml_newvm.createElement("provision")
-    xml_disks_newvm=[]
     for disk in xml_disks_template:
         disk.setAttribute("sr",local_sr_uuid) # set up new sr_uuid
         xml_provision_newvm.appendChild(parse_disk(disk, xml_newvm))
@@ -178,7 +177,7 @@ def set_disks(HOST, VM, PBD, SR, VBD, VDI):
     new_disk_config = xml_newvm.toprettyxml()
 
     global disks_number
-    disks_number = len(xml_disks_newvm)
+    disks_number = len(xml_disks_template)
     print ("Asking server to provision storage from the template specification")
     try:
         VM.remove_from_other_config(token, vm, "disks")
@@ -195,6 +194,7 @@ def set_disks(HOST, VM, PBD, SR, VBD, VDI):
         position = VBD.get_userdevice(token, vbd_ref)[v]
         vdi_ref = VBD.get_VDI(token, vbd_ref)[v]
         VDI.set_name_label(token, vdi_ref, names[position])
+
 
 def set_xentools_cd(VBD):
     """ Prepare CD with XenTools for VM """
