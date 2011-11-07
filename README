@@ -1,14 +1,24 @@
-KNOWN PROBLEMS:
+INFORMATION:
+
+This python scripts allows automatically install Debian (and probably derivatives using preseed files) onto XenServer (and any Linux distribution).
+
+It is an example of XAPI usage, which hopefully helps other to use XAPI with python.
+
+PREREQUISITES 
+python
+
+
+KNOWN LIMITATIONS:
 
 - XenTools installation depends on disk numbering,
-- list of OS to install depends hardcoded,
+- list of OS to install hardcoded,
 - installation target has to be local disk.
 
 TO DO:
 
 - add option to pass all variables from a file,
-- more documentation,
 - give choice of network interface(s),
 - better (more dynamic) created pressed file,
 - add option to set disk destination (local vs share storage),
-- add option to control disk size.
+- add option to add more disk,
+- more documentation.

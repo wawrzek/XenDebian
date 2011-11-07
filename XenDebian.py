@@ -18,7 +18,7 @@
 # Author Wawrzek Niewodniczanski < wawrzek.niewodniczanski at citrix.com >
 # - based on the install.py and provision.py examples from an old SDK.
 
-import sys, time, getopt
+import sys, time, getopt, re
 import xmlrpclib
 import xml.dom.minidom
 	
@@ -37,16 +37,18 @@ def set_vm(VM):
     """
 
     #CHANGE here - better list of distros
-    for vm, record in VM.get_all_records(token)[v].items():
-        if record["name_label"] == distro:
-            template = vm
-            break
-    print "  Selected template: %s\n" %(VM.get_name_label(token, template)[v])
+    distro_name = re.compile("Debian\ .+" + dist + '.+' + arch)
+    templates = [ t[0] for t in VM.get_all_records(token)[v].items() if re.search(distro_name, t[1]["name_label"]) ]
+    if not templates :
+        print (" Template not found\n\n")
+        sys.exit(4)
+    template = templates[0]
+    print ("  Selected template: %s\n" % VM.get_name_label(token, template)[v])
     
     print ("Installing new VM from the template")
     new_vm = VM.clone(token, template, vmname)[v]
     
-    print ("  New VM name is %s\n"% vmname)
+    print ("  New VM name is %s\n" % vmname)
     VM.set_name_description(token, new_vm, description)
 
     print ("Adding noninteractive to the kernel commandline\n")
@@ -350,19 +352,6 @@ if __name__ == "__main__":
         else:
             assert False, "unhandled option"
 
-    # Check if distro is supported 
-    # This can be done better, based on list from an actual box you try to connect to.
-    if dist == '5' and arch == '32':
-        distro = "Debian Lenny 5.0 ("+arch+"-bit)"
-    elif dist == '6':
-        if arch == '64':
-            distro ="Debian Squeeze 6.0 ("+arch+"-bit) (experimental)"
-        else:
-            distro = "Debian Squeeze 6.0 ("+arch+"-bit)"
-    else:
-        print ("Unknown disto release")
-        sys.exit(4)
-        
     # Check if address to a preseed file has been provided
     try:
         preseed = (" url=%s" %  configfile)
