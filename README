@@ -11,7 +11,6 @@ python
 KNOWN LIMITATIONS:
 
 - XenTools installation depends on disk numbering,
-- list of OS to install hardcoded,
 - installation target has to be local disk.
 
 TO DO:
