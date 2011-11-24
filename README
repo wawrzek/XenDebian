@@ -12,6 +12,7 @@ python
 KNOWN LIMITATIONS
 - memory limits are not properly set,
 - XenTools installation depends on disk numbering,
+- information about VM should be the last variable in commandline,
 - installation target has to be local disk. 
 
 
@@ -22,7 +23,8 @@ TO DO
 - give a choice of network interface(s),
 - better (more dynamic) creation of a preseed file,
 - add option to set disk destination (local vs share storage),
-- add option to add more disk.
+- add option to add more disk,
+- better handling situation with one server pool (-m=-s)
 
 
 TO DO IN DERIVATE PROGRAM

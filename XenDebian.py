@@ -78,7 +78,7 @@ def set_mem(VM):
 
 
 def get_pif(PIF, HOST, NET):
-    """Find out PIF (Physical network InterFace) attached to the selected server"""
+    """Find out PIF (Physical network interface) attached to the selected server"""
     
     # Choose the PIF with the alphabetically lowest device,
     # just because the example code does.
@@ -99,7 +99,7 @@ def get_pif(PIF, HOST, NET):
 
 
 def set_network(VIF):
-    """Set VIF (Virtual network InterFace) based on
+    """Set VIF (Virtual network interface) based on
     - vm;
     - network_ref. (PIF)
     """
@@ -279,7 +279,7 @@ def main():
 
 def usage():
     print """This is the tool to create a Debian based VM.
-    It is controle by following options:
+    It is controlled by following options:
     -m --master= string: name of the pool master/server you want to connect to (no default);
     -u --username= string: username to connect to the pool master/server (default: root);
     -p --password= string: password used to login into  the pool master/server (no default)"
