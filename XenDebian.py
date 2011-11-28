@@ -288,13 +288,10 @@ def usage():
     -i --information= string: description of the new VM (default: New Debian VM);
     -d --distro= [5,6]: release number of Debian release (default: 6);
     -a --arch= [32,64]: VM architecture (default: 32);
-    -c --config= [address] : address of preseed file to use - please remember not to add https:// (no default)"
-    -r --repo= [address]: address of local mirror - please remember not to add http:// (default ftp.debian.org/debian)"
+    -c --config= [address] : address of preseed file to use (no default)"
+    -r --repo= [address]: address of local mirror (default http://ftp.debian.org/debian)"
     -C --cpu= int: number of virtual CPU assign to vm (default 1);
     -M --memory= float: number of memory in GB (default 1.0);
-    DOESN'T WORK YET:
-    -D --disk= float: size of partition in GB (default 8.0);
-
     """
 if __name__ == "__main__":
     
@@ -341,9 +338,9 @@ if __name__ == "__main__":
         elif o in ("-a", "--arch"):
             arch = a
         elif o in ("-c", "--configfile"):
-            configfile = "http://"+a
+            configfile = +a
         elif o in ("-r" "--repo"):
-            repo = "http://"+a
+            repo = a
         elif o in ("-C", "--cpu"):
             cpu = int(a)
         elif o in ("-D", "--disk"):
