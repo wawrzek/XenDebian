@@ -67,14 +67,22 @@ def set_cpu(VM):
     VM.set_VCPUs_max(token, vm, str(cpu))
     VM.set_VCPUs_at_startup(token, vm, str(cpu))
 
+def set_advance_mem(VM):
+    mem_s_min = str(int(mem * 0.75))
+    mem_s_max = str(int(mem * 1.25))
+    mem_d_min = str(int(mem * 0.8))
+    mem_d_max = str(int(mem * 1.2))
+    VM.set_memory_limits(token, vm, mem_s_min, mem_s_max, mem_d_min, mem_d_max)
 
-def set_mem(VM):
+def set_mem(VM, adv_mem = False):
     """Set VM (static) memory"""
     
-    mem_str = str(int(mem*GB))
-    # It might be better to set dynamic values as well
-    VM.set_memory_static_min(token, vm, mem_str)
-    VM.set_memory_static_max(token, vm, mem_str)
+    if adv_mem:
+        set_advance_mem(VM)
+    else :
+        mem_str = str(int(mem*GB))
+        al = VM.set_memory_limits(token, vm, mem_str, mem_str, mem_str, mem_str)
+        print al
 
 
 def get_pif(PIF, HOST, NET):
@@ -338,7 +346,7 @@ if __name__ == "__main__":
         elif o in ("-a", "--arch"):
             arch = a
         elif o in ("-c", "--configfile"):
-            configfile = +a
+            configfile = a
         elif o in ("-r" "--repo"):
             repo = a
         elif o in ("-C", "--cpu"):
