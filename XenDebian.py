@@ -81,8 +81,7 @@ def set_mem(VM, adv_mem = False):
         set_advance_mem(VM)
     else :
         mem_str = str(int(mem*GB))
-        al = VM.set_memory_limits(token, vm, mem_str, mem_str, mem_str, mem_str)
-        print al
+        VM.set_memory_limits(token, vm, mem_str, mem_str, mem_str, mem_str)
 
 
 def get_pif(PIF, HOST, NET):

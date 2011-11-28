@@ -10,14 +10,12 @@ python
 
 
 KNOWN LIMITATIONS
-- memory limits are not properly set,
 - XenTools installation depends on disk numbering,
 - information about VM should be the last variable in commandline,
 - installation target has to be local disk. 
 
 
 TO DO
-- improve memory set up,
 - add option to pass variables from a batch file,
 - have a config file with static values (like repository address),
 - give a choice of network interface(s),
