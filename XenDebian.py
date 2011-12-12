@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 # vim: set et :
-# Copyright (c) 2006-2007, 2011 Citrix Systems, Inc.
+#
+#
+# Copyright (c)  Citrix Systems, Inc.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -16,8 +18,12 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 # Author Wawrzek Niewodniczanski < wawrzek.niewodniczanski at citrix.com >
-# - based on the install.py and provision.py examples from the XenSrrver SDK
+# - based on the install.py and provision.py examples from the XenServer SDK
 #   and Peter Westlake script.
+#
+# For more information about XenAPI please visit:
+# http://community.citrix.com/display/xs/Download+SDKs
+# http://docs.vmd.citrix.com/XenServer/6.0.0/1.0/en_gb/api/
 
 import sys, time, getopt, re
 import xmlrpclib

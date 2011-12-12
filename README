@@ -1,8 +1,11 @@
 INFORMATION:
 
-This python script allows unattended install of Debian (and probably derivatives using preseed files) onto XenServer (and any other Linux distribution using XAPI).
+This python script allows unattended install of Debian (and probably
+derivatives using preseed files) onto XenServer (and any other Linux
+distribution using XAPI).
 
-It is also an example of XAPI usage, which hopefully will help others to use XAPI with python.
+It is also an example of XenAPI usage, which hopefully will help others
+to use XenAPI with python.
 
 
 PREREQUISITES
@@ -22,9 +25,10 @@ TO DO
 - better (more dynamic) creation of a preseed file,
 - add option to set disk destination (local vs share storage),
 - add option to add more disk,
-- better handling situation with one server pool (-m=-s)
+- better handling situation with one server in a pool 
+   (value for -m equal -s).
 
 
 TO DO IN DERIVATE PROGRAM
-- refactor code or rewrite the whole script as more object-oriented.
+- refactor code or rewrite the whole script as more object-oriented,
 - ensure that script can install different distribution and OSes.
