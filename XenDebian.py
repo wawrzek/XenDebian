@@ -44,7 +44,7 @@ def set_vm(VM):
     """
 
     #CHANGE here - better list of distros
-    distro_name = re.compile("Debian\ .+" + dist + '.+' + arch)
+    distro_name = re.compile("Debian\ .+" + distro + '.+' + arch)
     templates = [ t[0] for t in VM.get_all_records(token)[v].items() if re.search(distro_name, t[1]["name_label"]) ]
     if not templates :
         print (" Template not found\n\n")
@@ -293,36 +293,26 @@ def main():
 def usage():
     print """This is the tool to create a Debian based VM.
     It is controlled by following options:
-    -m --master= string: name of the pool master/server you want to connect to (no default);
+    -c --configfile= string: name of a file with config (default: xendebia.conf);
     -u --username= string: username to connect to the pool master/server (default: root);
     -p --password= string: password used to login into  the pool master/server (no default)"
+    -m --master= string: name of the pool master/server you want to connect to (no default);
     -s --server= string: name of the server (host) you want to install your VM (no default);
     -v --vm= string: name of the new VM (default: new);
     -i --information= string: description of the new VM (default: New Debian VM);
     -d --distro= [5,6]: release number of Debian release (default: 6);
-    -a --arch= [32,64]: VM architecture (default: 32);
-    -c --config= [address] : address of preseed file to use (no default)"
+    -a --answerfile= [address] : address of preseed file to use (no default)"
     -r --repo= [address]: address of local mirror (default http://ftp.debian.org/debian)"
+    -A --arch= [32,64]: VM architecture (default: 32);
     -C --cpu= int: number of virtual CPU assign to vm (default 1);
     -M --memory= float: number of memory in GB (default 1.0);
     """
 if __name__ == "__main__":
-    
-    # Set DEFAULT VARIABLES
-    username = 'root'
-    vmname = 'new'
-    description = 'New Debian VM'
-    dist = '6'
-    arch = '32'
-    disk = 8.0
-    mem = 1.0
-    cpu = 1
-    repo = 'http://ftp.debian.org/debian'
-    
-    # Get input from the command line
+     
+    # Get input from the command line (will overwrite variable set in configfile
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:hi:m:p:r:s:u:v:C:D:M:",
-        ["arch=", "config=", "distro=", "help",  "info=", "master=", "password=", "repo=", "server=", "username=", "vm=", "cpu=", "disk=", "mem="])
+        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:hi:m:p:r:s:u:v:A:C:D:M:",
+        ["answerfile", "configfile=", "distro=", "help",  "info=", "master=", "password=", "repo=", "server=", "username=", "vm=", "arch=", "cpu=", "disk=", "mem="])
     except getopt.GetoptError, err:
         # Print help information; error message and exit"
         usage()
@@ -334,6 +324,8 @@ if __name__ == "__main__":
         if o in ("-h", "--help"):
             usage()
             sys.exit()
+        elif o in ("-c", "--configfile"):
+            configfile = a
         elif o in ("-u", "--username"):
             username = a
         elif o in ("-p", "--password"):
@@ -347,25 +339,56 @@ if __name__ == "__main__":
         elif o in ("-i", "--info"):
             description = a
         elif o in ("-d", "--distro"):
-            dist = a
-        elif o in ("-a", "--arch"):
-            arch = a
-        elif o in ("-c", "--configfile"):
-            configfile = a
+            distro = a
+        elif o in ("-a", "--anserfile"):
+            answerfile = a
         elif o in ("-r" "--repo"):
             repo = a
+        elif o in ("-A", "--arch"):
+            arch = a
         elif o in ("-C", "--cpu"):
             cpu = int(a)
-        elif o in ("-D", "--disk"):
-            disk = float(a)
         elif o in ("-M", "--memory"):
-            mem = float(a)
+            mem = a
         else:
             assert False, "unhandled option"
 
+    # Set missing variables based on configfile
+    try :
+        config_list = open('xendebian.conf').readlines()
+    except IOError:
+        pass
+    else:
+        config = dict([i.split(':',1) for i in config_list])
+        for var in config:
+            try : 
+                exec(var)
+            except NameError: 
+                exec ("%s = '%s'" %(var.strip(), config[var].strip()))
+
+    # ensure that all variables exist
+    try: 
+        repo and distro and vmname and url and hostname and distro and arch
+    except NameError as e:
+        print ('Error : Variable %s' % e)
+        sys.exit(2)
+
+    try: 
+        username 
+    except NameError as e:
+        username = 'root'
+        print ('Username set to root')
+
+
+    # Ensure that mem is float (for further calculation)
+    try :
+        mem = float(mem)
+    except NameError:
+        print ('Memory not define - value from template use')
+
     # Check if address to a preseed file has been provided
     try:
-        preseed = (" url=%s" %  configfile)
+        preseed = (" url=%s" %  answerfile)
     except NameError:
         preseed = ""
         print ("Preseed file not define. When script will finish please go to XenCenter to continue installation.")
