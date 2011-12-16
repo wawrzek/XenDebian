@@ -269,7 +269,7 @@ def main():
     cd_ref = VDI.get_by_name_label(token, 'xs-tools.iso')[v][0]
 
     global host_ref # Ref: Host to install
-    host_ref = HOST.get_by_name_label(token, hostname)[v][0]
+    host_ref = HOST.get_by_name_label(token, server)[v][0]
     
     global network_ref # Ref: Network
     network_ref = get_pif(PIF, HOST, NET)
@@ -331,9 +331,9 @@ if __name__ == "__main__":
         elif o in ("-p", "--password"):
             password= a
         elif o in ("-m", "--master"):
-            url = 'https://'+a
+            master = a
         elif o in ("-s", "--server"):
-            hostname = a
+            server = a
         elif o in ("-v", "--vm"):
             vmname = a
         elif o in ("-i", "--info"):
@@ -357,7 +357,10 @@ if __name__ == "__main__":
     try :
         config_list = open('xendebian.conf').readlines()
     except IOError:
-        pass
+        try :
+            config_list = open(os.path.expanduser('~/.xendebian.conf')).readlines()
+        except IOError:
+           pass
     else:
         config = dict([i.split(':',1) for i in config_list])
         for var in config:
@@ -368,7 +371,7 @@ if __name__ == "__main__":
 
     # ensure that all variables exist
     try: 
-        repo and distro and vmname and url and hostname and distro and arch
+        repo and distro and vmname and master and server and distro and arch
     except NameError as e:
         print ('Error : Variable %s' % e)
         sys.exit(2)
@@ -392,7 +395,10 @@ if __name__ == "__main__":
     except NameError:
         preseed = ""
         print ("Preseed file not define. When script will finish please go to XenCenter to continue installation.")
-        
+       
+    # Create URL for master
+    url = 'https://' + master
+
     # Get password if not passed from the commandline
     try:
         password
