@@ -14,20 +14,21 @@ python
 
 KNOWN LIMITATIONS
 - XenTools installation depends on disk numbering,
-- information about VM should be the last variable in commandline,
-- installation target has to be local disk. 
+- installation target is local disk. 
 
 
 TO DO
-- add option to pass variables from a batch file,
-- have a config file with static values (like repository address),
 - give a choice of network interface(s),
-- better (more dynamic) creation of a preseed file,
 - add option to set disk destination (local vs share storage),
-- add option to add more disk,
 - better handling situation with one server in a pool 
    (value for -m equal -s).
 
+NICE TO HAVE 
+- add option to pass variables from a batch file,
+
+THINGS CAN BE DONE BY PUPPET AND SIMILAR TOOL
+- add option to add more disk, 
+- better (more dynamic) creation of a preseed file,
 
 TO DO IN DERIVATE PROGRAM
 - refactor code or rewrite the whole script as more object-oriented,
