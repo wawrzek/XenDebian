@@ -25,7 +25,7 @@
 # http://community.citrix.com/display/xs/Download+SDKs
 # http://docs.vmd.citrix.com/XenServer/6.0.0/1.0/en_gb/api/
 
-import sys, time, getopt, re
+import sys, time, getopt, re, os
 import xmlrpclib
 import xml.dom.minidom
 	
@@ -360,23 +360,23 @@ if __name__ == "__main__":
         try :
             config_list = open(os.path.expanduser('~/.xendebian.conf')).readlines()
         except IOError:
-           pass
-    else:
-        config = dict([i.split(':',1) for i in config_list])
-        for var in config:
-            try : 
-                exec(var)
-            except NameError: 
-                exec ("%s = '%s'" %(var.strip(), config[var].strip()))
-
+           config_list = open(configfile)
+    
+    config = dict([i.split(':',1) for i in config_list])
+    for var in config:
+        try:
+            exec(var)
+        except NameError:
+            exec ("%s = '%s'" %(var.strip(), config[var].strip()))
+    
     # ensure that all variables exist
-    try: 
+    try:
         repo and distro and vmname and master and server and distro and arch
     except NameError as e:
         print ('Error : Variable %s' % e)
         sys.exit(2)
 
-    try: 
+    try:
         username 
     except NameError as e:
         username = 'root'
@@ -384,7 +384,7 @@ if __name__ == "__main__":
 
 
     # Ensure that mem is float (for further calculation)
-    try :
+    try:
         mem = float(mem)
     except NameError:
         print ('Memory not define - value from template use')
