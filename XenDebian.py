@@ -312,7 +312,7 @@ if __name__ == "__main__":
     # Get input from the command line (will overwrite variable set in configfile
     try:
         opts, args = getopt.getopt(sys.argv[1:], "a:c:d:hi:m:p:r:s:u:v:A:C:D:M:",
-        ["answerfile", "configfile=", "distro=", "help",  "info=", "master=", "password=", "repo=", "server=", "username=", "vm=", "arch=", "cpu=", "disk=", "mem="])
+                ["answerfile=", "configfile=", "distro=", "help", "info=", "master=", "password=", "repo=", "server=", "username=", "vm=", "arch=", "cpu=", "disk=", "memory="])
     except getopt.GetoptError, err:
         # Print help information; error message and exit"
         usage()
@@ -340,7 +340,7 @@ if __name__ == "__main__":
             description = a
         elif o in ("-d", "--distro"):
             distro = a
-        elif o in ("-a", "--anserfile"):
+        elif o in ("-a", "--answerfile"):
             answerfile = a
         elif o in ("-r" "--repo"):
             repo = a
@@ -353,21 +353,28 @@ if __name__ == "__main__":
         else:
             assert False, "unhandled option"
 
-    # Set missing variables based on configfile
+   # Set missing variables based on configfile
     try :
-        config_list = open('xendebian.conf').readlines()
-    except IOError:
+        config_list = open(configfile)
+    except NameError :
         try :
-            config_list = open(os.path.expanduser('~/.xendebian.conf')).readlines()
+            config_list = open('xendebian.conf').readlines()
         except IOError:
-           config_list = open(configfile)
-    
-    config = dict([i.split(':',1) for i in config_list])
-    for var in config:
-        try:
-            exec(var)
-        except NameError:
-            exec ("%s = '%s'" %(var.strip(), config[var].strip()))
+            try :
+                config_list = open(os.path.expanduser('~/.xendebian.conf')).readlines()
+            except IOError:
+                pass
+
+    try :
+        config = dict([i.split(':',1) for i in config_list])
+    except NameError :
+        pass
+    else :
+        for var in config:
+            try:
+                exec(var)
+            except NameError:
+                exec ("%s = '%s'" %(var.strip(), config[var].strip()))
     
     # ensure that all variables exist
     try:
