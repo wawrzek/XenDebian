@@ -371,6 +371,8 @@ if __name__ == "__main__":
         pass
     else :
         for var in config:
+            if var == 'info' : var = 'description '
+            elif var == 'memory' : var = 'mem'
             try:
                 exec(var)
             except NameError:
