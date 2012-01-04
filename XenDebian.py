@@ -293,19 +293,20 @@ def main():
 def usage():
     print """This is the tool to create a Debian based VM.
     It is controlled by following options:
-    -c --configfile= string: name of a file with config (default: xendebia.conf);
-    -u --username= string: username to connect to the pool master/server (default: root);
-    -p --password= string: password used to login into  the pool master/server (no default)"
-    -m --master= string: name of the pool master/server you want to connect to (no default);
-    -s --server= string: name of the server (host) you want to install your VM (no default);
-    -v --vm= string: name of the new VM (default: new);
-    -i --information= string: description of the new VM (default: New Debian VM);
-    -d --distro= [5,6]: release number of Debian release (default: 6);
-    -a --answerfile= [address] : address of preseed file to use (no default)"
-    -r --repo= [address]: address of local mirror (default http://ftp.debian.org/debian)"
-    -A --arch= [32,64]: VM architecture (default: 32);
-    -C --cpu= int: number of virtual CPU assign to vm (default 1);
-    -M --memory= float: number of memory in GB (default 1.0);
+    -c --configfile= string: name of a file with config
+           (default: xendebian.conf and ~xendebian.py);
+    -u --username= string: username to connect to the pool master/server;
+    -p --password= string: password used to login into  the pool master/server;
+    -m --master= string: name of the pool master/server you want to connect to;
+    -s --server= string: name of the server (host) you want to install your VM;
+    -v --vm= string: name of the new VM;
+    -i --info= string: description of the new VM;
+    -d --distro= [5,6]: release number of Debian release;
+    -a --answerfile= [address] : address of preseed file to use;
+    -r --repo= [address]: address of local mirror;
+    -A --arch= [32,64]: VM architecture;
+    -C --cpu= int: number of virtual CPU assign to vm;
+    -M --memory= float: number of memory in GB;
     """
 if __name__ == "__main__":
      
