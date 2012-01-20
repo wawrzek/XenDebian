@@ -354,18 +354,25 @@ if __name__ == "__main__":
         else:
             assert False, "unhandled option"
 
-   # Set missing variables based on configfile
+    # Find config file and read variables from it
+    # Try to open file with name provided from commandline
     try :
         config_list = open(configfile)
+    # Try to open 'xendebian.conf' file from current directory 
+    #  if nothing provided from commandline
     except NameError :
         try :
             config_list = open('xendebian.conf').readlines()
+    # Try to open '~/.xendebian.conf' from HOME directory
+    #  if nothing provided from commandline 
+    #  and xedebian.conf doesn't exist in current directory
         except IOError:
             try :
                 config_list = open(os.path.expanduser('~/.xendebian.conf')).readlines()
             except IOError:
                 pass
 
+   # Set missing variables based on configfile
     try :
         config = dict([i.split(':',1) for i in config_list])
     except NameError :
@@ -374,6 +381,7 @@ if __name__ == "__main__":
         for var in config:
             if var == 'info' : var = 'description '
             elif var == 'memory' : var = 'mem'
+            # Add variable only if not exist yet
             try:
                 exec(var)
             except NameError:
